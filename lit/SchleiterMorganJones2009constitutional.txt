@@ -1,0 +1,14 @@
+@article{10.2307/27798518,
+ ISSN = {00030554, 15375943},
+ URL = {http://www.jstor.org/stable/27798518},
+ abstract = {Some European constitutions give cabinets great discretion to manage their own demise, whereas others limit their choices and insert the head of state into decisions about government termination. In this article, we map the tremendous variation in the constitutional rules that govern cabinet termination and test existing expectations about its effects on a government's survival and mode of termination. In doing so, we use the most extensive government survival data set available to date, the first to include East and West European governments. Our results demonstrate that constitutional constraints on governments and presidential influence on cabinet termination are much more common than has previously been understood and have powerful effects on the hazard profiles of governments. These results alter and improve the discipline's understanding of government termination and durability, and have implications for comparative work in a range of areas, including the survival and performance of democracies, electoral accountability, opportunistic election calling, and political business cycles.},
+ author = {PETRA SCHLEITER and EDWARD MORGAN-JONES},
+ journal = {The American Political Science Review},
+ number = {3},
+ pages = {496--512},
+ publisher = {[American Political Science Association, Cambridge University Press]},
+ title = {Constitutional Power and Competing Risks: Monarchs, Presidents, Prime Ministers, and the Termination of East and West European Cabinets},
+ volume = {103},
+ year = {2009}
+}
+
