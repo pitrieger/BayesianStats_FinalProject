@@ -39,11 +39,3 @@ fit.exp_vector
 fit.exp_lower = stan(here("stanmodels", "survexp_lower.stan"),
                       data = KK20.stan_lower, cores = 4)
 fit.exp_lower
-
-echo "# BaysianStats_FinalProject" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/pitrieger/BaysianStats_FinalProject.git
-git push -u origin main

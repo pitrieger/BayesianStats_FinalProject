@@ -39,4 +39,3 @@ fit.exp_vector
 fit.exp_lower = stan(here("stanmodels", "survexp_lower.stan"),
                       data = KK20.stan_lower, cores = 4)
 fit.exp_lower
-
