@@ -1,7 +1,9 @@
+scripts_test/
+lit/
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+.Rmd
 survweib_*.stan
 cox*.stan
-scripts_test/

@@ -19,3 +19,9 @@ model {
     target += exponential_lpdf(T_event | lambda_event); 
     target += exponential_lccdf(T_censor | lambda_censor);  
 }
+generated quantities{
+    vector[n_event] T_event_ppd;
+    for(i in 1:n_event) {
+        T_event_ppd[i] = exponential_rng(exp(alpha + X_event[i] * beta));
+    }
+}
