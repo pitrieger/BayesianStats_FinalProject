@@ -9,15 +9,19 @@ data {
 }
 parameters {
     real alpha;
-    vector[p] beta;                                     
+    vector[p] beta;
+    real mu_alpha;
+    vector[p] mu_beta;
 }
 transformed parameters{
     vector[n_event] lambda_event = exp(alpha + X_event * beta);
     vector[n_censor] lambda_censor = exp(alpha + X_censor * beta);
 }
 model {
-    alpha ~ normal(0, 100);
-    beta ~ normal(0, 5);
+    mu_alpha ~ normal(0, 100);
+    mu_beta ~ normal(0, 100);
+    alpha ~ normal(mu_alpha, 5);
+    beta ~ normal(mu_beta, 5);
     target += exponential_lpdf(T_event | lambda_event); 
     target += exponential_lccdf(T_censor | lambda_censor);  
 }

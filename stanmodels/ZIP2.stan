@@ -25,8 +25,8 @@ transformed parameters{
   theta_zero = inv_logit(Z_zero*gamma);
 }
 model {
-  beta ~ normal(0, 4);
-  gamma ~ normal(0, 4);
+  beta ~ normal(0, 5);
+  gamma ~ normal(0, 5);
   target += log_sum_exp(bernoulli_lpmf(1 | theta_zero),
                                  bernoulli_lpmf(0 | theta_zero)+
                                  poisson_lpmf(0 | lambda_zero));
