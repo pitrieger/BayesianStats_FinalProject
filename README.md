@@ -1,3 +1,3 @@
 # BaysianStats_FinalProject
 
-This repo includes the replication files for the final project in the course Applied Bayesian Statistics.
+This repo includes the replication files of the final project for the course Applied Bayesian Statistics. In the paper, I replicate the analysis of a paper by [Krauss & Kroeber (2020)](https://www.tandfonline.com/doi/full/10.1080/13501763.2020.1773905) who show that government stability is higher in cabinets with a higher share of female ministers. I transfer their survival model to an exponential survival model which I implement in `Stan`.  
