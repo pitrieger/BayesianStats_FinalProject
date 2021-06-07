@@ -54,9 +54,6 @@ KK20 = KK20 %>%
          maxdur_raw = maxdur,
          maxdur = scale(maxdur))
 
-### ### ### ### ### ### ### ### ###
-### Exponential Survival model ####
-### ### ### ### ### ### ### ### ###
 # data in stan format
 event = KK20$failure
 T_event = KK20$duration[event == 1]
@@ -66,23 +63,38 @@ X = model.matrix(~ share_women_executive + pref + enpp +
                  data = KK20)
 X = X[,-1]
 p = ncol(X)
-summary(lm(duration ~ share_women_executive + pref + enpp + 
-             decade + ciep + minority + maxdur, data = KK20))
-
 X_event = X[event == 1,]
 X_censor = X[event == 0,]  
 n_event = nrow(X_event)
 n_censor = nrow(X_censor)
+X_pred = rbind(c(min(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])),
+               c(mean(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])),
+               c(max(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])))
 
-KK20.standat_exp_vector = list(n_event = n_event, n_censor = n_censor, p = p,
-                        X_event = X_event, X_censor = X_censor,
-                        T_event = T_event, T_censor = T_censor)
-#KK20.stan_lower = KK20.stan_vector 
-#names(KK20.stan_lower)[names(KK20.stan_lower) == "T_censor"] = "lower_censor"
+KK20.standat = list(n_event = n_event, n_censor = n_censor, p = p,
+                    X_event = X_event, X_censor = X_censor,
+                    T_event = T_event, T_censor = T_censor,
+                    X_pred = X_pred)
 
-# run models
+### ### ### ### ### ### 
+### Descriptives ######
+### ### ### ### ### ###
+ggplot(KK20, aes(x = duration, y = decade)) +
+  stat_binline(bins = 20, alpha = 0.5) + 
+  stat_density_ridges(quantile_fun = mean, quantile_lines = T,alpha = 0.5, fill = "orangered3") + 
+  #  scale_x_continuous(limits = c(-20, 15)) + 
+  labs(x = "Coefficient") + 
+  theme_minimal() + 
+  theme(axis.title.y = element_blank())
+
+
+
+### ### ### ### ### ### ### ### ###
+### Exponential Survival model ####
+### ### ### ### ### ### ### ### ###
+# run model
 fit.exp_vector = stan(here("stanmodels", "survexp_vector.stan"),
-                      data = KK20.standat_exp_vector, cores = 4,
+                      data = KK20.standat, cores = 4,
                       control = list(max_treedepth = 10),
                       iter = 4000)
 fit.exp_vector
@@ -117,7 +129,7 @@ ggplot(coef.samples, aes(x = value)) +
         axis.text = element_text(size = 8),
         axis.text.x = element_text(angle = 40, hjust = 1.1, vjust = 1.3))
 
-ggsave(here("results", "fig1_coefplot.pdf"),
+ggsave(here("results", "fig1_exp_coefplot.pdf"),
        width = 6, height = 5)
 
 
@@ -153,43 +165,15 @@ ggplot(coef.chains, aes(x = iteration, y = value, color = chain)) +
         legend.position = c(0.92, 0.04),
         legend.title.align = 0.5)
 
-ggsave(here("results", "fig2_convergence.pdf"),
+ggsave(here("results", "fig2_exp_convergence.pdf"),
        width = 6, height = 5)
 
 ## Posterior Predictive Distribution
-alpha = extract(fit.exp_vector, pars = c("alpha")) %>% unlist()
-beta = extract(fit.exp_vector, pars = c("beta"))$beta
-X_pred = rbind(c(min(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])),
-               c(mean(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])),
-               c(max(X[,1]), mean(X[,2]), mean(X[,3]), rep(0, 10), mean(X[,14])))
-#X_pred = X[sample(1:676,3),]
-lambda_pred = exp(alpha + t(X_pred %*% t(beta))) %>% as.data.frame()
-colnames(lambda_pred) = c("Minimum Share of Women in Cabinet", "Mean Share of Women in Cabinet", "Maximum Share of Women in Cabinet")
-lambda_pred = lambda_pred %>% 
-  pivot_longer(cols = 1:3,
-               names_to = "type",
-               values_to = "lambda")
-lambda_pred$Y_pred = sapply(lambda_pred$lambda, function(l) rexp(1, l))
-quantile(1/lambda_pred$lambda)
-
-hist(lambda_pred$Y_pred)
-
-
-g = extract(fit.exp_vector, pars = c("lambda_event"))
-range(1/g$lambda_event)
-g = extract(fit.exp_vector, pars = "lambda_censor")
-range(1/g$lambda_censor)
-
-ggplot(KK20, aes(x = duration, y = decade)) +
-  stat_binline(bins = 20, alpha = 0.5) + 
-  stat_density_ridges(quantile_fun = mean, quantile_lines = T,alpha = 0.5, fill = "orangered3") + 
-#  scale_x_continuous(limits = c(-20, 15)) + 
-  labs(x = "Coefficient") + 
-  theme_minimal() + 
-  theme(axis.title.y = element_blank())
-  
-
-ggplot(lambda_pred, aes(x = Y_pred)) +
+T_pred = as.data.frame(extract(fit.exp_vector, pars = "T_pred"))
+colnames(T_pred) = c("Minimum Share of Women in Cabinet", "Mean Share of Women in Cabinet", "Maximum Share of Women in Cabinet")
+T_pred = T_pred %>% pivot_longer(cols = 1:3, names_to = "type",
+                                 values_to = "T_pred")
+ggplot(T_pred, aes(x = T_pred)) +
   geom_density(fill = "orangered3", alpha = 0.7) + 
   facet_wrap(~type, scales = "free_y", ncol = 1) +
   scale_x_continuous(limits = c(0, 30000)) + 
@@ -202,12 +186,122 @@ ggplot(lambda_pred, aes(x = Y_pred)) +
         legend.position = "bottom",
         axis.text = element_text(size = 8))
 
-ggsave(here("results", "fig3_posteriorpredict.pdf"),
+ggsave(here("results", "fig3_exp_posteriorpredict.pdf"),
+       width = 6, height = 4)
+
+# Survival Function
+# plot(fit.exp_vector, pars = "T_pred")
+# T_pred = as.data.frame(extract(fit.exp_vector, pars = "T_pred"))
+# 
+# ecdf1 = ecdf(T_pred$T_pred.1)
+# ecdf2 = ecdf(T_pred$T_pred.2)
+# ecdf3 = ecdf(T_pred$T_pred.3)
+# t_grid = 0:2000
+# surv.df = data.frame(t = t_grid,
+#                      Minimal = ecdf1(t_grid),
+#                      Mean = ecdf2(t_grid),
+#                      Maximal = ecdf3(t_grid))
+# surv.df = surv.df %>% pivot_longer(cols = 2:4,
+#                                    names_to = "type",
+#                                    values_to = "cdf") %>%
+#   rowwise() %>%
+#   mutate(surv = 1 - cdf)
+# ggplot(surv.df, aes(x = t, y = surv, color = type)) + 
+#   geom_line() +
+#   labs(x = "Duration", y = "Survival",
+#        color = "Share of Women in Cabinet") + 
+#   scale_color_manual(values = brewer.pal(3, "Dark2")) +
+#   theme_minimal() + 
+#   theme(legend.position = "bottom") + 
+#   guides(color = guide_legend(title.position = 'top', title.hjust = 0.5))
+# 
+# ggsave(here("results", "fig4_survplot.pdf"),
+#        width = 6, height = 5)
+
+## Theoretical survplot
+alpha = extract(fit.exp_vector, pars = c("alpha")) %>% unlist()
+beta = extract(fit.exp_vector, pars = c("beta"))$beta
+nu = exp(as.numeric(mean(alpha) + X_pred[1,2:14] %*% colMeans(beta[,2:14])) + as.matrix(X_pred[,1]) %*% t(as.matrix(beta[,1])))
+nu = apply(nu, 1, function(x) c(quantile(x, prob = 0.05), mean(x), quantile(x, prob = 0.95)))
+t_grid = 0:2000
+surv.df = data.frame(t = t_grid,
+                     type = rep(c("Minimal", "Mean", "Maximal"), each = length(t_grid)),
+                     Survival = 1 - c(pexp(t_grid, nu[2, 1]), pexp(t_grid, nu[2, 2]), pexp(t_grid, nu[2, 3])),
+                     Survival_lower = 1 - c(pexp(t_grid, nu[1, 1]), pexp(t_grid, nu[1, 2]), pexp(t_grid, nu[1, 3])),
+                     Survival_upper = 1 - c(pexp(t_grid, nu[3, 1]), pexp(t_grid, nu[3, 2]), pexp(t_grid, nu[3, 3])))
+
+ggplot(surv.df, aes(x = t, y = Survival, ymin = Survival_lower, ymax = Survival_upper, 
+                    color = type, fill = type)) + 
+  geom_ribbon(alpha=0.4, color = NA) + 
+  geom_line() +
+  labs(x = "Duration", y = "Survival",
+       color = "Share of Women in Cabinet",
+       fill = "Share of Women in Cabinet") + 
+  scale_color_manual(values = brewer.pal(3, "Dark2")) +
+  scale_fill_manual(values = brewer.pal(3, "Dark2")) +
+  theme_minimal() + 
+  theme(legend.position = "bottom") + 
+  guides(color = guide_legend(title.position = 'top', title.hjust = 0.5))
+
+ggsave(here("results", "fig4_exp_survplot.pdf"),
        width = 6, height = 4)
 
 
+### ### ### 
+### Weib ##
+### ### ###
+# fit model
+fit.weib_vector = stan(here("stanmodels", "survweib_vector.stan"), 
+                       data = KK20.standat,
+                       cores = 4)
+fit.weib_vector
 
+# traceplot(fit.weib_vector)
+# plot(fit.weib_vector, pars = "T_pred")
+# T_pred = as.data.frame(extract(fit.weib_vector, pars = "T_pred"))
+# 
+# ecdf1 = ecdf(T_pred$T_pred.1)
+# ecdf2 = ecdf(T_pred$T_pred.2)
+# ecdf3 = ecdf(T_pred$T_pred.3)
+# t_grid = 0:2000
+# surv.df = data.frame(t = t_grid,
+#                      min = ecdf1(t_grid),
+#                      mean = ecdf2(t_grid),
+#                      max = ecdf3(t_grid))
+# surv.df = surv.df %>% pivot_longer(cols = 2:4,
+#                          names_to = "type",
+#                          values_to = "cdf") %>%
+#   rowwise() %>%
+#   mutate(surv = 1 - cdf)
+# ggplot(surv.df, aes(x = t, y = surv, color = type)) + 
+#   geom_line()
 
+## Theoretical survplot
+alpha = extract(fit.weib_vector, pars = c("alpha")) %>% unlist()
+mu = extract(fit.weib_vector, pars = c("mu")) %>% unlist()
+beta = extract(fit.weib_vector, pars = c("beta"))$beta
+sigma = exp(- (as.numeric(mean(mu) + X_pred[1,2:14] %*% colMeans(beta[,2:14])) + as.matrix(X_pred[,1]) %*% t(as.matrix(beta[,1])))/ mean(alpha));
+sigma = apply(sigma, 1, function(x) c(quantile(x, prob = 0.025), mean(x), quantile(x, prob = 0.975)))
+surv.df = data.frame(t = t_grid,
+                     type = rep(c("Minimal", "Mean", "Maximal"), each = length(t_grid)),
+                     Survival = 1 - c(pweibull(t_grid, mean(alpha), sigma[2, 1]), pweibull(t_grid, mean(alpha), sigma[2, 2]), pweibull(t_grid, mean(alpha), sigma[2, 3])),
+                     Survival_lower = 1 - c(pweibull(t_grid, mean(alpha), sigma[1, 1]), pweibull(t_grid, mean(alpha), sigma[1, 2]), pweibull(t_grid, mean(alpha), sigma[1, 3])),
+                     Survival_upper = 1 - c(pweibull(t_grid, mean(alpha), sigma[3, 1]), pweibull(t_grid, mean(alpha), sigma[3, 2]), pweibull(t_grid, mean(alpha), sigma[3, 3])))
+
+ggplot(surv.df, aes(x = t, y = Survival, ymin = Survival_lower, ymax = Survival_upper, 
+                    color = type, fill = type)) + 
+  geom_ribbon(alpha=0.4, color = NA) + 
+  geom_line() +
+  labs(x = "Duration", y = "Survival",
+       color = "Share of Women in Cabinet",
+       fill = "Share of Women in Cabinet") + 
+  scale_color_manual(values = brewer.pal(3, "Dark2")) +
+  scale_fill_manual(values = brewer.pal(3, "Dark2")) +
+  theme_minimal() + 
+  theme(legend.position = "bottom") + 
+  guides(color = guide_legend(title.position = 'top', title.hjust = 0.5))
+
+ggsave()
 
 
 ### ### ###
