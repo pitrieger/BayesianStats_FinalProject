@@ -1,0 +1,242 @@
+\documentclass[11pt]{article}
+\usepackage{UF_FRED_paper_style}
+\usepackage{lipsum}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{dsfont}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{array}
+\usepackage{color}
+\usepackage{multicol}
+\usepackage[labelfont=bf]{caption}
+\usepackage{lstbayes} % Bayes version of listings package
+\usepackage{xcolor}
+\usepackage{pdfpages}
+\usepackage{titletoc}
+\usepackage[toc,page]{appendix}
+
+% appendix
+\renewcommand\appendixpagename{Appendix}
+\renewcommand\appendixtocname{Appendix}
+
+% Code chunk setup
+\definecolor{commentcolor}{HTML}{8F8F8F}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{HTML}{FFA500}
+\definecolor{backcolor}{HTML}{FFFFFF}
+\definecolor{fctcolor}{HTML}{C28100}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolor},   
+    commentstyle=\color{commentcolor},
+    keywordstyle=\color{fctcolor},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+%\doublespacing
+%\singlespacing
+\onehalfspacing
+
+% table settings
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+\abovedisplayskip=0pt
+\belowdisplayskip=0pt
+
+% possesive citation
+\newcommand\possecite[1]{\citeauthor{#1}'s (\citeyear{#1})}
+
+% captions and notes
+\newcommand\fnote[1]{\captionsetup{font=footnotesize}\caption*{\textit{#1}}}
+\newcommand\minp[1]{\begin{minipage}{0.75\textwidth} #1 \end{minipage}}
+
+% colored comments
+\newcommand{\colcom}[2][red]{
+\textcolor{#1}{#2}
+}
+
+\setitemize{itemsep = -0.5em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+\setlength{\droptitle}{-5em} %% Don't touch
+
+\title{\large Final Paper \\ ~ \\
+\LARGE  Government Stability and Female Representation:\\
+A Bayesian Replication of Krauss \& Kröber (2020)\footnote[1]{The replication files for this paper are publicly available on GitHub under \url{github.com/pitrieger/BaysianStats_FinalProject}.}}
+
+\author{Pit Rieger\\
+    \href{mailto:prieger@ethz.ch}{\texttt{prieger@ethz.ch}}\\
+    19-951-102}
+
+\date{\today}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\maketitle
+
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+\begin{center}
+    $\Huge \bigcirc$
+\end{center}
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+
+\begin{abstract}
+{\noindent\itshape
+\lipsum[1]
+}
+\end{abstract}
+
+\bigskip
+\bigskip
+\bigskip
+\bigskip
+
+\newpage
+
+%\setcounter{tocdepth}{2}
+%\tableofcontents
+%\clearpage
+
+\section{Introduction \& Research Question}
+
+[TODO: GET OLD REMATCHING from OUP book TO GET REAL YEAR INSTEAD OF DECADE VARIABLE!]
+
+Empirical analyses of cabinet stability and duration have a long tradition in the political science literature (for an overview, see XXX). \textcite{LupiaStrøm1995} even trace this literature back to early works by \textcite{Bryce1921} and \textcite{Lowell1896}. A recent paper by \textcite{KK20} addresses the research question \textit{whether cabinets with a higher share of women or a female head of government are more stable.} Their findings suggest that indeed the share of women is negatively associated with the risk of early termination, while the gender of the head of government is not. In this paper, I seek to address this question by replicating \possecite{KK20} findings in a Bayesian framework. More specifically, I rely on Bayesian survival regression models as well as a zero-inflated Poisson regression. 
+
+Scholars have identified several factors that increase the risk of early cabinet terminations. \textcite{SchleiterMorganJones2009} differentiate between government-specific, parliament-specific, and political-system-specific attributes. Government-specific attributes include the minority status of the government and whether it is a single-party or coalition government \parencite{StromSwindle2002}. Parliament-specific attributes are the fragmentation and polarization of the party system \parencite{KingEtAl1990}. Finally, the political system matters for example by determining the duration of the constitutional interelection period \parencite{StromSwindle2002}. Moreover, with regard to constitutional power, \textcite{SchleiterMorganJones2009} show that systems in which cabinets can dissolve themselves are at a higher risk of early termination (see also Strøm \& Swindle, \citeyear{StromSwindle2002}).
+
+In essence, \textcite{KK20} start by arguing that generally conflict lies at the heart of the factors that are associated with government stability. They further stipulate that leadership style determines the response to situations of conflict \parencite{KK20}. In this regard, a broad literature has found that on average, women are more likely to compromise and collaborate to dissolve conflict than men \parencite[e.g.][]{rhode2017women}. Taken together, these arguments lead them to "hypothesise that the presence of a female prime minister and female ministers positively impacts cabinet stability" \parencite[4]{KK20}.
+
+
+\section{Methods \& Data}
+\subsection{Data}
+I will be using the replication data from \textcite{KK20}, which is available online and stems from the ERDDA \parencite{ERD2014}, which contains 676 governments in 27 European countries\footnote{Full list of countries: Austria, Belgium, Denmark, Finland, France, Germany, Greece, Iceland, Ireland, Italy, Luxembourg, Netherlands, Norway, Portugal, Spain, Sweden, Great Britain, Bulgaria, Czechia, Estonia, Hungary, Latvia, Lithuania, Poland, Romania, Slovakia, Slovenia.}. The main variable of interest $Y_i$, $i = 1, ..., n$, is a right-censored random variable, representing the number of days that a given government was in office. Censoring takes place because for some governments, we cannot observe when they would have collapsed because they survived until the next regular election date. However, we implicitly assume that all governments would fail eventually as time $t \to \infty$, such that $Y_i < \infty$. In the following, $F_i$ is an indicator of whether government $i$ failed before the next regulation and consequently $C_i = 1-F_i$ an indicator of whether observation $i$ is censored. 
+
+With respect to the substantive research question, we have several covariates that we use for the analysis. I follow \possecite{KK20} specification of the regression equation with the exception that I additionally control for the decade in which the government was inaugurated. Recent governments clearly have higher shares of female ministers, so time has the potential to be a confounder. 
+
+The main independent variables are the share of female ministers and the gender of the head of government. The former is computed across all ministers in a given government, irrespective of the duration of their tenure in government; and the latter is a simple indicator variable. 
+
+[DISCUSS covariates]
+[ADD some figures]
+
+\subsection{Models}
+\subsubsection{Exponential Survival Model}
+Survival models are still often associated with a frequentist approach. Certainly easy to use \texttt{R}-packages, such as \texttt{Survival} \parencite{Rsurvival2020} have played a role in their popularity. At the same time, \texttt{rstanarm} \parencite{rstanarm2020} has only recently extended its range to survival models in the development version\footnote{\url{https://github.com/stan-dev/rstanarm/tree/feature/survival} (retrieved on 11 May 2021)}. Instead of relying on this à-la-carte option, I wrote the \texttt{Stan} code myself. However, Eren M. Elçi's blog post\footnote{\url{https://ermeel86.github.io/case_studies/surv_stan_example.html} (retrieved on 11 May 2021)} on Bayesian survival models was incredibly helpful to vectorize the posterior draws using \texttt{Stan}'s convenient logarithmic complementary cumulative distribution function (\texttt{*\_lccdf}).
+
+If it wasn't for the censoring, discussed above, survival models could simply be estimated with standard regression models, such as gamma or Weibull regression. Given that we know the time at which censoring occurs, one way to account for censoring is to integrate the censored observations out of the likelihood function. Thus, the likelihood for a censored observation $j$ is given by 
+
+\begin{align*}
+\mathcal{L}_j (\theta) &= \int_{y_j}^{\infty} p(u_j|\theta_j) du_j \\
+&= 1-\mathbb{P}_\theta(Y_j \leq y_j),
+\end{align*}
+
+which is the complementary cumulative distribution function (ccdf).
+
+Thus, the likelihood of all observations can be written as 
+
+\begin{align*}
+    \mathcal{L}_{1:n}(\theta) = \prod_{i = 1}^n \left\{C_j (1-\mathbb{P}_{\theta_i}(Y_i \leq y_i)) + (1-C_i) p(y_i|\theta)\right\}
+\end{align*}
+
+or more conveniently after arranging the data into censored and uncensored observations of length $n_1$ and $n_2 = n - n_1$ 
+
+\begin{align}
+    \mathcal{L}_{1:n}(\theta) &= \mathcal{L}_{1:n_1}(\theta) + \mathcal{L}_{(n_1 + 1):n}(\theta) \nonumber \\
+    &= \prod_{i = 1}^{n_1} (1-\mathbb{P}_{\theta_i}(Y_i \leq y_i)) \prod_{i = n_1 + 1}^n p(y_i|\theta_i).
+    \label{eq:likelihood}
+\end{align}
+
+As a distributional assumption, I assume that the failure times are exponentially distributed with density function (pdf)
+
+\begin{equation*}
+    p(y_i|\theta_i) = \theta_i \exp(-\theta_i y_i)
+\end{equation*}
+
+and cumulative distribution function (cdf) 
+
+\begin{equation*}
+    \mathbb{P}_{\theta_i}(Y_i \leq y_i) = 1 - \exp(-\theta_i y_i)
+\end{equation*}
+
+such that the ccdf is simply
+    
+\begin{equation*}
+    1 - \mathbb{P}_{\theta_i}(Y_i \leq y_i) = \exp(-\theta_i y_i).
+\end{equation*}
+    
+In all cases, the covariates are included in the rate (inverse scale) parameter $\theta_i \in \mathbb{R}^+$ which is defined as 
+
+\begin{equation*}
+    \bm{\theta} = \exp(\beta_0 + \bm{X}\bm{\beta}). 
+\end{equation*}
+
+\subsubsection{Weibull Survival Model}
+Another alternative is to change the distributional assumption to a Weibull distribution. This relaxes the assumption of a constant hazard rate that is made by the exponential model discussed above. Instead, the Weibull model allows for hazards to increase or decrease over time. 
+
+No changes are necessary with respect to the general approach of integrating over censored observations, so the likelihood in equation \ref{eq:likelihood} remains. However, $\theta_i$ needs to be redefined to accommodate the two parameters of the Weibull distribution. I thus redefine $\theta_i = (\alpha, \sigma_i)$, $\alpha, \sigma \in \mathbb{R}^+$. Further, the pdf of the Weibull distribution is given by 
+
+\begin{equation*}
+    p(y_i|\theta_i) = \frac{\alpha}{\sigma_i} \left(\frac{y_i}{\sigma_i}\right) \exp\left(-\left(\frac{y_i}{\sigma_i}\right)^{\alpha}\right)
+\end{equation*}
+
+its cdf by
+
+\begin{equation*}
+    \mathbb{P}_{\theta_i}(Y_i \leq y_i) = 1 - \exp\left(-\left(\frac{y_i}{\sigma_i}\right)^{\alpha}\right)
+\end{equation*}
+
+and so its ccdf is
+
+\begin{equation*}
+    1 - \mathbb{P}_{\theta_i}(Y_i \leq y_i) = \exp\left(-\left(\frac{y_i}{\sigma_i}\right)^{\alpha}\right).
+\end{equation*}
+
+I then 
+
+\subsection{Prior Selection}
+Both the exponential and the Weibull model require priors for the intercept $\beta_0$ and the coefficients of the covariates $\bm\beta$. Since these are simple regression coefficients, I use jointly independent normal priors for all parameters. Formally, 
+
+\begin{align*}
+    \beta_0 &\sim \mathcal{N}(0, 100) \\
+    \bm{\beta} &\sim \mathcal{N}_{p}(0, 5^2I),
+\end{align*}
+where $\mathcal{N}_p$ is the multivariate normal distribution and $I$ a $p\times p$ identity matrix. Note that the prior is much less informative for the intercept compared to the covariates. 
+
+Finally, 
+
+\section{Analysis}
+\subsection{Convergence}
+\subsection{Results}
+\subsection{Discussion}
+
+\newpage
+
+\printbibliography
+
+\newpage
+
+\input{appendix}
+
+\end{document}
