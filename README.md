@@ -6,4 +6,4 @@ The full analysis can be replicated in the `R`-script [BayesStat_FinalProject_ma
 
 The code for the survival models was partly inspired by 
 * [Eren M. Elçi's blog post](https://ermeel86.github.io/case_studies/surv_stan_example.html)
-* [Jacki Buros Novik's package](https://github.com/jburos/biostan)
+* [Jacki Buros Novik's package `biostan`](https://github.com/jburos/biostan)
