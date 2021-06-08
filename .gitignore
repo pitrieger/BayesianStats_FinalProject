@@ -5,3 +5,4 @@ lit/
 .Ruserdata
 .Rmd
 cox*.stan
+.history
