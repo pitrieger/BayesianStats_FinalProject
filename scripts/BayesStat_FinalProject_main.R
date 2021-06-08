@@ -81,16 +81,32 @@ KK20.standat = list(n_event = n_event, n_censor = n_censor, p = p,
 ### ### ### ### ### ### 
 ### Descriptives ######
 ### ### ### ### ### ###
-ggplot(KK20, aes(x = duration, y = decade)) +
-  stat_binline(bins = 20, alpha = 0.5) + 
-  stat_density_ridges(quantile_fun = mean, quantile_lines = T,alpha = 0.5, fill = "orangered3") + 
-  #  scale_x_continuous(limits = c(-20, 15)) + 
-  labs(x = "Coefficient") + 
+KK20$fail = ifelse(KK20$failure == 1, "Observed failure", "Censored")
+ggplot(KK20, aes(x = duration)) +
+  geom_histogram(color = "black", fill = "white", bins = 40) +
+  facet_wrap(~fail, ncol = 1)+
+  labs(x = "Duration") + 
   theme_minimal() + 
-  theme(axis.title.y = element_blank())
+  theme(axis.title.y = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_text(face = "bold"),
+        legend.position = "bottom",
+        axis.text = element_text(size = 8))
+KK20 %>% group_by(fail) %>% summarize(m = median(duration))
+ggsave(here("results", "fig5_DVsummary.pdf"),
+       width = 6, height = 4)
 
 stargazer(as.data.frame(X))
+round(100 * summary(KK20$decade)/nrow(KK20), 1)
+round(100 * summary(KK20$ciep)/nrow(KK20), 1)
 
+plot(density(extract(fit.weib_vector, pars = "alpha") %>% unlist()))
+plot(seq(0, 15, l = 400), exp(dnorm(seq(0, 15, l = 400), 0, 2)))
+l = exp(10 * rnorm(1000))
+l = l[l<50]
+hist(l, breaks = 500)
+hist(abs(rcauchy(1000, 0, 100)))
+hist(exp(10 * rnorm(1000)))
 
 ### ### ### ### ### ### ### ### ###
 ### Exponential Survival model ####
@@ -99,7 +115,8 @@ stargazer(as.data.frame(X))
 fit.exp_vector = stan(here("stanmodels", "survexp_vector.stan"),
                       data = KK20.standat, cores = 4,
                       control = list(max_treedepth = 10),
-                      iter = 4000)
+                      iter = 4000,
+                      seed = 942)
 fit.exp_vector
 
 ## Plot Coefficients
@@ -221,13 +238,15 @@ ggplot(surv.df, aes(x = t, y = Survival, ymin = Survival_lower, ymax = Survival_
 ggsave(here("results", "fig4_exp_survplot.pdf"),
        width = 6, height = 4)
 
-### ### ### 
-### Weib ####
-### ### ###
+### ### ### ###
+### Weibull ####
+### ### ### ###
 # fit model
 fit.weib_vector = stan(here("stanmodels", "survweib_vector.stan"), 
                        data = KK20.standat,
-                       cores = 4)
+                       cores = 4,
+                       iter = 4000,
+                       seed = 481)
 fit.weib_vector
 
 # coefficient plot

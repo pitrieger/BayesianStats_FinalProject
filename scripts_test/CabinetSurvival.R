@@ -46,7 +46,14 @@ rm(i, j, temp)
 
 tt = function(x, t, ...) x * log(t)
 fit.cph = coxph(Surv(duration, failure) ~ share_women_executive + maxdur + ciep + 
-                  pref + minority + enpp, data = fem)
+                  pref + minority + enpp, data = KK20)
+cox.zph(fit.cph)
+
+fit.cph = coxph(Surv(duration, failure) ~ share_women_executive + maxdur + ciep + 
+                  pref + minority + enpp + decade, data = KK20)
+cox.zph(fit.cph)
+
+?cox.zph
 
 fem$ciep = fem$ciep -2
 fit.cph = coxph(Surv(duration, failure) ~ share_women_executive + maxdur + ciep + 

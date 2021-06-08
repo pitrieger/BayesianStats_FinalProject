@@ -97,7 +97,7 @@ generated quantities {
 
 
 \subsection{Weibull Survival Model}
-This section contains the coefficient plot and the convergence plot for the Weibull model. Note that Figure \ref{fig:weib_convergence} includes both the parameter $\alpha$ of the Weibull distribution as well as the traces of the regression coefficients.
+This section contains the coefficient plot for the Weibull model, which was excluded from the main section because it does not differ substantially from the coefficient plot for the exponential model, shown in Figure \ref{fig:exp_coefplot}. 
 
 \begin{figure}
     \centering
@@ -105,21 +105,16 @@ This section contains the coefficient plot and the convergence plot for the Weib
     \includegraphics[width = 0.8\textwidth]{figures/fig1_weib_coefplot.pdf}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \minp{\caption{Traces of the parameters in the Weibull survival model.} \label{fig:weib_convergence}}
-    \includegraphics[width = 0.8\textwidth]{figures/fig2_weib_convergence.pdf}
-\end{figure}
-
 
 \subsection{Zero-Inflated Poisson Regression}
-Since the interest is more on the association between survival time and the share of female ministers in the cabinet, the problem can also be approached differently, i.e. outside the survival modelling framework. Typically it is roughly known when the next regular elections will be held. At the start of each government, we can thus already tell what the maximum number of possible days in office for that government will be. Denoting this maximum as $m_i$, we can compute the number of days that the government fell short of reaching that maximum as 
+Since the main interest of \textcite{KK20} and this paper does not lie in the concrete survival times, but rather on the association between government stability and the share of female ministers in the cabinet, the problem can also be approached differently, i.e. outside the survival modelling framework. It is generally known when the next regular elections will be held. At the time of government formation, we can thus already tell what the maximum number of possible days in office for that government will be. In fact, this is used as one of the covariates in the survival models in the paper. Denoting this maximum as $m_i$, we can compute the number of days that the government fell short of reaching that maximum as 
 
 \begin{equation*}
     \widetilde{Y}_i = m_i - Y_i.
 \end{equation*}
 
 We thus have a count variable $\widetilde{Y}_i$ that can be modelled as a zero-inflated Poisson random variable. The likelihood of this model is therefore given by 
+
 \begin{equation*}
     \mathcal{L}_i(\theta) = \begin{cases}
     \pi_i + (1-\pi_i) e^{-\lambda_i} \lambda_i^{0} & \text{, $\tilde{y}_i = 0$} \\
@@ -130,6 +125,8 @@ We thus have a count variable $\widetilde{Y}_i$ that can be modelled as a zero-i
 where $\bm\theta = (\bm\pi, \bm\lambda)$ can be defined via logistic and log link functions, respectively, such that 
 
 \begin{align*}
-    \bm\pi &= (1 + \exp(-(\alpha + \bm{X} \bm\beta)))^{-1} \\
-    \bm\lambda &= \exp(\nu+ \bm{Z} \bm\gamma)/ 
+    \bm\pi &= (1 + \exp(-(\beta_0 + \bm{X} \bm\beta)))^{-1} \\
+    \bm\lambda &= \exp(\gamma_0 + \bm{Z} \bm\gamma). 
 \end{align*}
+
+\texttt{Stan} and \texttt{R}-code for this model are included in the \href{https://github.com/pitrieger/BayesianStats_FinalProject}{GitHub repository of this paper}. However, the parameters of the zero-inflation component fail to converge properly when using the full set of covariates for both $\bm{X}$ and $\bm{Z}$. When using certain subsets $\bm{Z}' \subset \bm{Z}$ and the full set of covariates $\bm{X}$, the model yields results that are equivalent to the survival models discussed in this paper. 

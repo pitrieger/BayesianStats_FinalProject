@@ -21,7 +21,7 @@ transformed parameters {
 model {
   mu ~ normal(0, 100);
   beta ~ normal(0, 5);
-  alpha ~ cauchy(0, 2.5);
+  alpha ~ cauchy(0, 100);
   target += weibull_lpdf(T_event | alpha, sigma_event);
   target += weibull_lccdf(T_censor | alpha, sigma_censor);
 }
